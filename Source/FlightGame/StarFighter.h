@@ -29,6 +29,8 @@ protected:
 
 	void ReadPitch(float value);
 
+	void ReadYaw(float value);
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USceneComponent* root;
@@ -52,16 +54,24 @@ protected:
 	float throttle = .0f;
 	float roll = .0f;
 	float pitch = .0f;
+	float yaw = .0f;
 	float rollSpeed = 100.f;
 	float pitchSpeed = 75.f;
+	float yawSpeed = 25.f;
 
 	UPROPERTY(BlueprintReadOnly)
 	float rollVelocity = .0f;
 	UPROPERTY(BlueprintReadOnly)
 	float pitchVelocity = .0f;
+	UPROPERTY(BlueprintReadOnly)
+	float yawVelocity = .0f;
 
 	bool bUpdateRollVel = false;
 	bool bUpdatePitchVel = false;
+	bool bUpdateYawVel = false;
+
+	FVector defaultCameraPos;
+	float maxOffset = 100.f;
 
 public:	
 	// Called every frame

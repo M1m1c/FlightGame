@@ -27,7 +27,7 @@ AStarFighter::AStarFighter()
 void AStarFighter::BeginPlay()
 {
 	Super::BeginPlay();
-
+	defaultCameraPos = CameraComp->GetRelativeLocation();
 }
 
 // Called every frame
@@ -41,7 +41,7 @@ void AStarFighter::Tick(float DeltaTime)
 		velDecelerationSpeed,
 		FMath::IsNearlyZero(throttle) == false);
 
-	moveVelocity = FMath::Clamp(moveVelocity + newVelocity, 0.1f, 1.f);
+	moveVelocity = FMath::Clamp(moveVelocity + newVelocity, 0.2f, 1.f);
 	//UE_LOG(LogTemp, Warning, TEXT("%f velocity"), moveVelocity);
 
 	FVector location = GetActorLocation();
@@ -66,12 +66,33 @@ void AStarFighter::Tick(float DeltaTime)
 	rollVelocity = FMath::Clamp(rollVelocity + rollVel, 0.f, 1.f);
 	auto updatedRoll = roll * rollSpeed * rollVelocity;
 
+	auto yawVel = GetPropotionalVelocityChange(
+		DeltaTime,
+		yawVelocity,
+		turnAccelerationSpeed,
+		turnDecelerationSpeed,
+		bUpdateYawVel);
+	yawVelocity = FMath::Clamp(yawVelocity + yawVel, 0.f, 1.f);
+	auto updatedYaw = yaw * yawSpeed * yawVelocity;
 
-	FRotator newRotation = FRotator(updatedPitch, 0.0f, updatedRoll) * DeltaTime;
+
+	FRotator newRotation = FRotator(updatedPitch, updatedYaw, updatedRoll) * DeltaTime;
 
 	FQuat quatRotation = FQuat(newRotation);
 
 	AddActorLocalRotation(quatRotation, false, 0, ETeleportType::None);
+
+	auto currentCamPos = CameraComp->GetRelativeLocation();
+	//TODO Only do y offset whn rolling and pitching or when yawing
+	auto yOffSet = (FMath::Clamp((rollVelocity + yawVelocity) * (FMath::Abs(roll) + FMath::Abs(yaw)), 0.f, 1.f) * maxOffset * moveVelocity);
+	auto xOffSet = (pitchVelocity * FMath::Abs(pitch) * maxOffset * moveVelocity);
+
+	auto offsetVec = FVector(
+		defaultCameraPos.X,
+		((roll < 0.f || yaw < 0.f) ? -yOffSet : yOffSet) + defaultCameraPos.Y,
+		(pitch < 0.f ? -xOffSet : xOffSet) + defaultCameraPos.Z);
+
+	CameraComp->SetRelativeLocation(FMath::Lerp(currentCamPos,offsetVec,DeltaTime));
 
 }
 
@@ -96,6 +117,7 @@ void AStarFighter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	InputComponent->BindAxis("Throttle", this, &AStarFighter::ReadThrottle);
 	InputComponent->BindAxis("Roll", this, &AStarFighter::ReadRoll);
 	InputComponent->BindAxis("Pitch", this, &AStarFighter::ReadPitch);
+	InputComponent->BindAxis("Yaw", this, &AStarFighter::ReadYaw);
 }
 
 void AStarFighter::ReadThrottle(float value)
@@ -132,6 +154,17 @@ void AStarFighter::ReadPitch(float value)
 	}*/
 	pitch = -value;
 	bUpdatePitchVel = true;
+}
+
+void AStarFighter::ReadYaw(float value)
+{
+	if (FMath::IsNearlyZero(value))
+	{
+		bUpdateYawVel = false;
+		return;
+	}
+	yaw = value;
+	bUpdateYawVel = true;
 }
 
 
