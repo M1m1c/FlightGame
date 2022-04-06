@@ -84,15 +84,20 @@ void AStarFighter::Tick(float DeltaTime)
 
 	auto currentCamPos = CameraComp->GetRelativeLocation();
 	//TODO Only do y offset whn rolling and pitching or when yawing
-	auto yOffSet = (FMath::Clamp((rollVelocity + yawVelocity) * (FMath::Abs(roll) + FMath::Abs(yaw)), 0.f, 1.f) * maxOffset * moveVelocity);
+	auto yVel = ((rollVelocity * pitchVelocity) + yawVelocity);
+	auto yInput = FMath::Clamp(FMath::Abs(roll * pitch) + FMath::Abs(yaw), 0.f, 1.f);
+	auto yOffSet = (FMath::Clamp(yVel * yInput, 0.f, 1.f) * maxOffset * moveVelocity);
 	auto xOffSet = (pitchVelocity * FMath::Abs(pitch) * maxOffset * moveVelocity);
+
+	auto bRollNegative = (roll < 0.f && bUpdateRollVel == true);
+	auto bYawNegative = (yaw < 0.f && bUpdateYawVel == true);
 
 	auto offsetVec = FVector(
 		defaultCameraPos.X,
-		((roll < 0.f || yaw < 0.f) ? -yOffSet : yOffSet) + defaultCameraPos.Y,
+		((bRollNegative || bYawNegative) ? -yOffSet : yOffSet) + defaultCameraPos.Y,
 		(pitch < 0.f ? -xOffSet : xOffSet) + defaultCameraPos.Z);
 
-	CameraComp->SetRelativeLocation(FMath::Lerp(currentCamPos,offsetVec,DeltaTime));
+	CameraComp->SetRelativeLocation(FMath::Lerp(currentCamPos, offsetVec, DeltaTime));
 
 }
 
