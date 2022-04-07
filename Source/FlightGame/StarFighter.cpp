@@ -56,6 +56,7 @@ void AStarFighter::Tick(float DeltaTime)
 		bUpdatePitchVel);
 	pitchVelocity = FMath::Clamp(pitchVelocity + pitchVel, 0.f, 1.f);
 	auto updatedPitch = pitch * pitchSpeed * pitchVelocity;
+	if (FMath::IsNearlyZero(pitchVelocity)) { pitch = 0.f; }
 
 	auto rollVel = GetPropotionalVelocityChange(
 		DeltaTime,
@@ -65,6 +66,7 @@ void AStarFighter::Tick(float DeltaTime)
 		bUpdateRollVel);
 	rollVelocity = FMath::Clamp(rollVelocity + rollVel, 0.f, 1.f);
 	auto updatedRoll = roll * rollSpeed * rollVelocity;
+	if (FMath::IsNearlyZero(rollVelocity)) { roll = 0.f; }
 
 	auto yawVel = GetPropotionalVelocityChange(
 		DeltaTime,
@@ -74,6 +76,7 @@ void AStarFighter::Tick(float DeltaTime)
 		bUpdateYawVel);
 	yawVelocity = FMath::Clamp(yawVelocity + yawVel, 0.f, 1.f);
 	auto updatedYaw = yaw * yawSpeed * yawVelocity;
+	if (FMath::IsNearlyZero(yawVelocity)) { yaw = 0.f; }
 
 
 	FRotator newRotation = FRotator(updatedPitch, updatedYaw, updatedRoll) * DeltaTime;
