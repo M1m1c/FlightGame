@@ -10,6 +10,9 @@ AStarFighter::AStarFighter()
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
+	bAlwaysRelevant = true;
+	NetUpdateFrequency = 60.0f;
 	root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent = root;
 
@@ -35,6 +38,17 @@ void AStarFighter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	UpdateShipMovement(DeltaTime);
+
+	UpdateShipRotation(DeltaTime);
+
+	if (!IsLocallyControlled()) { return; }
+	UpdateCameraOffset(DeltaTime);
+
+}
+
+void AStarFighter::UpdateShipMovement(float DeltaTime)
+{
 	auto newVelocity = GetLinearVelocityChange(
 		DeltaTime,
 		throttle < 0.f ? -velAccelerationSpeed : velAccelerationSpeed,
@@ -42,51 +56,49 @@ void AStarFighter::Tick(float DeltaTime)
 		FMath::IsNearlyZero(throttle) == false);
 
 	moveVelocity = FMath::Clamp(moveVelocity + newVelocity, 0.2f, 1.f);
-	//UE_LOG(LogTemp, Warning, TEXT("%f velocity"), moveVelocity);
 
 	FVector location = GetActorLocation();
 	location += GetActorForwardVector() * (MaxSpeed * DeltaTime * moveVelocity);
 	SetActorLocation(location);
+}
 
-	auto pitchVel = GetPropotionalVelocityChange(
-		DeltaTime,
-		pitchVelocity,
-		turnAccelerationSpeed,
-		turnDecelerationSpeed,
-		bUpdatePitchVel);
-	pitchVelocity = FMath::Clamp(pitchVelocity + pitchVel, 0.f, 1.f);
-	auto updatedPitch = pitch * pitchSpeed * pitchVelocity;
-	if (FMath::IsNearlyZero(pitchVelocity)) { pitch = 0.f; }
+void AStarFighter::UpdateShipRotation(float DeltaTime)
+{
 
-	auto rollVel = GetPropotionalVelocityChange(
-		DeltaTime,
-		rollVelocity,
-		turnAccelerationSpeed,
-		turnDecelerationSpeed,
-		bUpdateRollVel);
-	rollVelocity = FMath::Clamp(rollVelocity + rollVel, 0.f, 1.f);
-	auto updatedRoll = roll * rollSpeed * rollVelocity;
-	if (FMath::IsNearlyZero(rollVelocity)) { roll = 0.f; }
+	auto updatedPitch = GetUpdatedRotAxis(DeltaTime, pitchSpeed, pitchVelocity, pitch, bUpdatePitchVel);
 
-	auto yawVel = GetPropotionalVelocityChange(
-		DeltaTime,
-		yawVelocity,
-		turnAccelerationSpeed,
-		turnDecelerationSpeed,
-		bUpdateYawVel);
-	yawVelocity = FMath::Clamp(yawVelocity + yawVel, 0.f, 1.f);
-	auto updatedYaw = yaw * yawSpeed * yawVelocity;
-	if (FMath::IsNearlyZero(yawVelocity)) { yaw = 0.f; }
+	auto updatedRoll = GetUpdatedRotAxis(DeltaTime, rollSpeed, rollVelocity, roll, bUpdateRollVel);
 
+	auto updatedYaw = GetUpdatedRotAxis(DeltaTime, yawSpeed, yawVelocity, yaw, bUpdateYawVel);
 
 	FRotator newRotation = FRotator(updatedPitch, updatedYaw, updatedRoll) * DeltaTime;
 
 	FQuat quatRotation = FQuat(newRotation);
 
 	AddActorLocalRotation(quatRotation, false, 0, ETeleportType::None);
+}
 
-	auto currentCamPos = CameraComp->GetRelativeLocation();
-	//TODO Only do y offset whn rolling and pitching or when yawing
+float AStarFighter::GetUpdatedRotAxis(float DeltaTime, float speed, float& velocity, float& input, bool bAccCondition)
+{
+	velocity = GetRotVelocity(DeltaTime, velocity, bAccCondition);
+	if (FMath::IsNearlyZero(velocity)) { input = 0.f; }
+	return input * speed * velocity;
+}
+
+float AStarFighter::GetRotVelocity(float DeltaTime, float currentVel,bool bAccCondition)
+{
+	auto velocityChange = GetPropotionalVelocityChange(
+		DeltaTime,
+		currentVel,
+		turnAccelerationSpeed,
+		turnDecelerationSpeed,
+		bAccCondition);
+	return FMath::Clamp(currentVel + velocityChange, 0.f, 1.f);
+}
+
+void AStarFighter::UpdateCameraOffset(float DeltaTime)
+{	
+
 	auto yVel = ((rollVelocity * pitchVelocity) + yawVelocity);
 	auto yInput = FMath::Clamp(FMath::Abs(roll * pitch) + FMath::Abs(yaw), 0.f, 1.f);
 	auto yOffSet = (FMath::Clamp(yVel * yInput, 0.f, 1.f) * maxOffset * moveVelocity);
@@ -100,8 +112,8 @@ void AStarFighter::Tick(float DeltaTime)
 		((bRollNegative || bYawNegative) ? -yOffSet : yOffSet) + defaultCameraPos.Y,
 		(pitch < 0.f ? -xOffSet : xOffSet) + defaultCameraPos.Z);
 
+	auto currentCamPos = CameraComp->GetRelativeLocation();
 	CameraComp->SetRelativeLocation(FMath::Lerp(currentCamPos, offsetVec, DeltaTime));
-
 }
 
 float AStarFighter::GetLinearVelocityChange(float deltaTime, float accelSpeed, float decelSpeed, bool changeCondition)

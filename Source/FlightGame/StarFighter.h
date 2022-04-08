@@ -23,6 +23,16 @@ protected:
 
 	float GetPropotionalVelocityChange(float deltaTime, float currentVelocity, float accelSpeed, float decelSpeed, bool changeCondition);
 
+	void UpdateShipMovement(float DeltaTime);
+
+	void UpdateShipRotation(float DeltaTime);
+
+	float GetUpdatedRotAxis(float DeltaTime, float speed, float& velocity, float& input, bool bAccCondition);
+
+	float GetRotVelocity(float DeltaTime, float currentVel, bool bAccCondition);
+
+	void UpdateCameraOffset(float DeltaTime);
+
 	void ReadThrottle(float value);
 
 	void ReadRoll(float value);
@@ -78,6 +88,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	
+
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
