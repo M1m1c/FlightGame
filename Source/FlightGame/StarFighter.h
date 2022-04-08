@@ -87,7 +87,17 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	
+	UFUNCTION(Server, Reliable)
+	void Server_ReadThrottle(float value);
+
+	UFUNCTION(Server, Reliable)
+	void Server_ReadRoll(float value);
+
+	UFUNCTION(Server, Reliable)
+	void Server_ReadPitch(float value);
+
+	UFUNCTION(Server, Reliable)
+	void Server_ReadYaw(float value);
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

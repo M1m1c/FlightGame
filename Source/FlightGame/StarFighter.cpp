@@ -134,15 +134,22 @@ float AStarFighter::GetPropotionalVelocityChange(float deltaTime, float currentV
 void AStarFighter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	InputComponent->BindAxis("Throttle", this, &AStarFighter::Server_ReadThrottle);
 	InputComponent->BindAxis("Throttle", this, &AStarFighter::ReadThrottle);
+
+	InputComponent->BindAxis("Roll", this, &AStarFighter::Server_ReadRoll);
 	InputComponent->BindAxis("Roll", this, &AStarFighter::ReadRoll);
+
+	InputComponent->BindAxis("Pitch", this, &AStarFighter::Server_ReadPitch);
 	InputComponent->BindAxis("Pitch", this, &AStarFighter::ReadPitch);
+
+	InputComponent->BindAxis("Yaw", this, &AStarFighter::Server_ReadYaw);
 	InputComponent->BindAxis("Yaw", this, &AStarFighter::ReadYaw);
 }
 
 void AStarFighter::ReadThrottle(float value)
 {
-	throttle = value;
+	throttle = FMath::Clamp(value, -1.f, 1.f);;
 }
 
 void AStarFighter::ReadRoll(float value)
@@ -152,12 +159,7 @@ void AStarFighter::ReadRoll(float value)
 		bUpdateRollVel = false;
 		return;
 	}
-	//TODO if differnce between value and roll is greater than 0.3 then reset velocity
-	/*if ((roll > 0.f && value < 0.f) || (roll < 0.f && value > 0.f))
-	{
-		rollVelocity = 0.f;
-	}*/
-	roll = value;
+	roll = FMath::Clamp(value, -1.f, 1.f);;
 	bUpdateRollVel = true;
 }
 
@@ -168,11 +170,7 @@ void AStarFighter::ReadPitch(float value)
 		bUpdatePitchVel = false;
 		return;
 	}
-	/*if ((pitch > 0.f && value < 0.f) || (pitch < 0.f && value > 0.f))
-	{
-		pitchVelocity = 0.f;
-	}*/
-	pitch = -value;
+	pitch = -FMath::Clamp(value, -1.f, 1.f);;
 	bUpdatePitchVel = true;
 }
 
@@ -183,9 +181,26 @@ void AStarFighter::ReadYaw(float value)
 		bUpdateYawVel = false;
 		return;
 	}
-	yaw = value;
+	yaw = FMath::Clamp(value, -1.f, 1.f);;
 	bUpdateYawVel = true;
 }
 
+void AStarFighter::Server_ReadThrottle_Implementation(float value)
+{
+	ReadThrottle(value);
+}
 
+void AStarFighter::Server_ReadRoll_Implementation(float value)
+{
+	ReadRoll(value);
+}
 
+void AStarFighter::Server_ReadPitch_Implementation(float value)
+{
+	ReadPitch(value);
+}
+
+void AStarFighter::Server_ReadYaw_Implementation(float value)
+{
+	ReadYaw(value);
+}
