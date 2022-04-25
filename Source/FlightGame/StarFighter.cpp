@@ -2,6 +2,7 @@
 
 
 #include "StarFighter.h"
+#include "Net/UnrealNetwork.h"
 #include <Runtime/Engine/Classes/GameFramework/SpringArmComponent.h>
 #include <Runtime/Engine/Classes/Camera/CameraComponent.h>
 
@@ -13,6 +14,7 @@ AStarFighter::AStarFighter()
 	bReplicates = true;
 	bAlwaysRelevant = true;
 	NetUpdateFrequency = 60.0f;
+
 	root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent = root;
 
@@ -26,6 +28,7 @@ AStarFighter::AStarFighter()
 
 }
 
+
 // Called when the game starts or when spawned
 void AStarFighter::BeginPlay()
 {
@@ -33,52 +36,92 @@ void AStarFighter::BeginPlay()
 	defaultCameraPos = CameraComp->GetRelativeLocation();
 }
 
+
 // Called every frame
 void AStarFighter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
 
-	UpdateShipMovement(DeltaTime);
+	if (!HasAuthority() && IsLocallyControlled())
+	{
+		auto flightMove = CreateNewMove(DeltaTime);
+		UnusedMoves.Add(flightMove);
+		SimulateMove(flightMove);
+		Server_SendMove(flightMove);
+	}
+	else if (HasAuthority() && IsLocallyControlled())
+	{
+		auto flightMove = CreateNewMove(DeltaTime);
+		Server_SendMove(flightMove);
+	}
+	else if (GetRemoteRole() == ENetRole::ROLE_SimulatedProxy)
+	{
+		SimulateMove(ServerState.previousMove);
+	}
 
-	UpdateShipRotation(DeltaTime);
 
 	if (!IsLocallyControlled()) { return; }
 	UpdateCameraOffset(DeltaTime);
 
 }
 
-void AStarFighter::UpdateShipMovement(float DeltaTime)
+
+FFlightMove AStarFighter::CreateNewMove(float DeltaTime)
+{
+	FFlightMove move;
+	move.DeltaTime = DeltaTime;
+	move.throttle = throttle;
+	move.roll = roll;
+	move.pitch = pitch;
+	move.yaw = yaw;
+	move.bUpdateRollVel = bUpdateRollVel;
+	move.bUpdatePitchVel = bUpdatePitchVel;
+	move.bUpdateYawVel = bUpdateYawVel;
+	move.TimeStamp = GetWorld()->GetTimeSeconds();//ARaceGameState::Get(this)->GetServerWorldTimeSeconds();
+	return move;
+}
+
+void AStarFighter::SimulateMove(const FFlightMove& move)
+{
+	UpdateShipMovement(move);
+
+	UpdateShipRotation(move);
+}
+
+
+void AStarFighter::UpdateShipMovement(const FFlightMove& move)
 {
 	auto newVelocity = GetLinearVelocityChange(
-		DeltaTime,
-		throttle < 0.f ? -velAccelerationSpeed : velAccelerationSpeed,
+		move.DeltaTime,
+		move.throttle < 0.f ? -velAccelerationSpeed : velAccelerationSpeed,
 		velDecelerationSpeed,
-		FMath::IsNearlyZero(throttle) == false);
+		FMath::IsNearlyZero(move.throttle) == false);
 
 	moveVelocity = FMath::Clamp(moveVelocity + newVelocity, 0.2f, 1.f);
 
 	FVector location = GetActorLocation();
-	location += GetActorForwardVector() * (MaxSpeed * DeltaTime * moveVelocity);
+	location += GetActorForwardVector() * (MaxSpeed * move.DeltaTime * moveVelocity);
 	SetActorLocation(location);
 }
 
-void AStarFighter::UpdateShipRotation(float DeltaTime)
+void AStarFighter::UpdateShipRotation(const FFlightMove& move)
 {
 
-	auto updatedPitch = GetUpdatedRotAxis(DeltaTime, pitchSpeed, pitchVelocity, pitch, bUpdatePitchVel);
+	auto updatedPitch = GetUpdatedRotAxis(move.DeltaTime, pitchSpeed, pitchVelocity, move.pitch, move.bUpdatePitchVel);
 
-	auto updatedRoll = GetUpdatedRotAxis(DeltaTime, rollSpeed, rollVelocity, roll, bUpdateRollVel);
+	auto updatedRoll = GetUpdatedRotAxis(move.DeltaTime, rollSpeed, rollVelocity, move.roll, move.bUpdateRollVel);
 
-	auto updatedYaw = GetUpdatedRotAxis(DeltaTime, yawSpeed, yawVelocity, yaw, bUpdateYawVel);
+	auto updatedYaw = GetUpdatedRotAxis(move.DeltaTime, yawSpeed, yawVelocity, move.yaw, move.bUpdateYawVel);
 
-	FRotator newRotation = FRotator(updatedPitch, updatedYaw, updatedRoll) * DeltaTime;
+	FRotator newRotation = FRotator(updatedPitch, updatedYaw, updatedRoll) * move.DeltaTime;
 
 	FQuat quatRotation = FQuat(newRotation);
 
 	AddActorLocalRotation(quatRotation, false, 0, ETeleportType::None);
 }
 
-float AStarFighter::GetUpdatedRotAxis(float DeltaTime, float speed, float& velocity, float& input, bool bAccCondition)
+float AStarFighter::GetUpdatedRotAxis(float DeltaTime, float speed, float& velocity, float input, bool bAccCondition)
 {
 	velocity = GetRotVelocity(DeltaTime, velocity, bAccCondition);
 	if (FMath::IsNearlyZero(velocity)) { input = 0.f; }
@@ -125,7 +168,7 @@ float AStarFighter::GetLinearVelocityChange(float deltaTime, float accelSpeed, f
 float AStarFighter::GetPropotionalVelocityChange(float deltaTime, float currentVelocity, float accelSpeed, float decelSpeed, bool changeCondition)
 {
 	auto proportionalDec = -(deltaTime + (deltaTime * (decelSpeed * currentVelocity)));
-	auto deceleration = moveVelocity > .0f ? proportionalDec : -deltaTime;
+	auto deceleration = currentVelocity > .0f ? proportionalDec : -deltaTime;
 	auto velocityChange = (changeCondition ? deltaTime * accelSpeed : deceleration);
 	return velocityChange;
 }
@@ -134,16 +177,10 @@ float AStarFighter::GetPropotionalVelocityChange(float deltaTime, float currentV
 void AStarFighter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	InputComponent->BindAxis("Throttle", this, &AStarFighter::Server_ReadThrottle);
+
 	InputComponent->BindAxis("Throttle", this, &AStarFighter::ReadThrottle);
-
-	InputComponent->BindAxis("Roll", this, &AStarFighter::Server_ReadRoll);
 	InputComponent->BindAxis("Roll", this, &AStarFighter::ReadRoll);
-
-	InputComponent->BindAxis("Pitch", this, &AStarFighter::Server_ReadPitch);
 	InputComponent->BindAxis("Pitch", this, &AStarFighter::ReadPitch);
-
-	InputComponent->BindAxis("Yaw", this, &AStarFighter::Server_ReadYaw);
 	InputComponent->BindAxis("Yaw", this, &AStarFighter::ReadYaw);
 }
 
@@ -185,22 +222,52 @@ void AStarFighter::ReadYaw(float value)
 	bUpdateYawVel = true;
 }
 
-void AStarFighter::Server_ReadThrottle_Implementation(float value)
+void AStarFighter::ClearUsedMoves(FFlightMove previousMove)
 {
-	ReadThrottle(value);
+	TArray<FFlightMove> newMoves;
+
+	for (const FFlightMove& move : UnusedMoves)
+	{
+		if (move.TimeStamp > previousMove.TimeStamp)
+		{
+			newMoves.Add(move);
+		}
+	}
+	UnusedMoves = newMoves;
 }
 
-void AStarFighter::Server_ReadRoll_Implementation(float value)
+
+void AStarFighter::Server_SendMove_Implementation(FFlightMove NewMove)
 {
-	ReadRoll(value);
+	SimulateMove(NewMove);
+	ServerState.previousMove = NewMove;
+	ServerState.transform = GetActorTransform();
+	ServerState.moveVelocity = moveVelocity;
+	ServerState.rollVelocity = rollVelocity;
+	ServerState.pitchVelocity = pitchVelocity;
+	ServerState.yawVelocity = yawVelocity;
 }
 
-void AStarFighter::Server_ReadPitch_Implementation(float value)
+//Updates position and simulate moves that have been missed
+void AStarFighter::OnRep_ServerState()
 {
-	ReadPitch(value);
+	SetActorTransform(ServerState.transform);
+	moveVelocity = ServerState.moveVelocity;
+	rollVelocity = ServerState.rollVelocity;
+	pitchVelocity = ServerState.pitchVelocity;
+	yawVelocity = ServerState.yawVelocity;
+	ClearUsedMoves(ServerState.previousMove);
+
+	for (const FFlightMove& move : UnusedMoves)
+	{
+		SimulateMove(move);
+	}
 }
 
-void AStarFighter::Server_ReadYaw_Implementation(float value)
+
+void AStarFighter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	ReadYaw(value);
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AStarFighter, ServerState);
 }

@@ -6,6 +6,57 @@
 #include "GameFramework/Pawn.h"
 #include "StarFighter.generated.h"
 
+USTRUCT()
+struct FFlightMove
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY()
+	float throttle = .0f;
+	UPROPERTY()
+	float roll = .0f;
+	UPROPERTY()
+	float pitch = .0f;
+	UPROPERTY()
+	float yaw = .0f;
+
+	UPROPERTY()
+	bool bUpdateRollVel = false;
+	UPROPERTY()
+	bool bUpdatePitchVel = false;
+	UPROPERTY()
+	bool bUpdateYawVel = false;
+
+	UPROPERTY()
+	float DeltaTime;
+
+	UPROPERTY()
+	float TimeStamp;
+};
+
+USTRUCT()
+struct FStarFighterState
+{
+	GENERATED_USTRUCT_BODY()
+public:
+
+	UPROPERTY()
+	FTransform transform;
+
+	UPROPERTY()
+	float moveVelocity = .0f;
+	UPROPERTY()
+	float rollVelocity = .0f;
+	UPROPERTY()
+	float pitchVelocity = .0f;
+	UPROPERTY()
+	float yawVelocity = .0f;
+
+	UPROPERTY()
+	FFlightMove previousMove;
+};
+
+
 UCLASS()
 class FLIGHTGAME_API AStarFighter : public APawn
 {
@@ -13,21 +64,24 @@ class FLIGHTGAME_API AStarFighter : public APawn
 
 public:
 	// Sets default values for this pawn's properties
-	AStarFighter();
+	AStarFighter();	
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
+
 	float GetLinearVelocityChange(float deltaTime, float accelSpeed, float decelSpeed, bool changeCondition);
 
 	float GetPropotionalVelocityChange(float deltaTime, float currentVelocity, float accelSpeed, float decelSpeed, bool changeCondition);
 
-	void UpdateShipMovement(float DeltaTime);
+	void SimulateMove(const FFlightMove& move);
 
-	void UpdateShipRotation(float DeltaTime);
+	void UpdateShipMovement(const FFlightMove& move);
 
-	float GetUpdatedRotAxis(float DeltaTime, float speed, float& velocity, float& input, bool bAccCondition);
+	void UpdateShipRotation(const FFlightMove& move);
+
+	float GetUpdatedRotAxis(float DeltaTime, float speed, float& velocity, float input, bool bAccCondition);
 
 	float GetRotVelocity(float DeltaTime, float currentVel, bool bAccCondition);
 
@@ -41,6 +95,19 @@ protected:
 
 	void ReadYaw(float value);
 
+	void ClearUsedMoves(FFlightMove previousMove);
+
+	FFlightMove CreateNewMove(float DeltaTime);
+
+	UFUNCTION(Server, Reliable)
+	void Server_SendMove(FFlightMove NewMove);
+
+	UFUNCTION()
+	void OnRep_ServerState();
+
+	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
+	FStarFighterState ServerState;
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USceneComponent* root;
@@ -50,6 +117,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* CameraComp;
+
+	TArray<FFlightMove> UnusedMoves;
 
 	UPROPERTY(EditDefaultsOnly)
 	float MaxSpeed = 10000.0f;
@@ -83,23 +152,12 @@ protected:
 	FVector defaultCameraPos;
 	float maxOffset = 100.f;
 
+	
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(Server, Reliable)
-	void Server_ReadThrottle(float value);
-
-	UFUNCTION(Server, Reliable)
-	void Server_ReadRoll(float value);
-
-	UFUNCTION(Server, Reliable)
-	void Server_ReadPitch(float value);
-
-	UFUNCTION(Server, Reliable)
-	void Server_ReadYaw(float value);
-
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 };
