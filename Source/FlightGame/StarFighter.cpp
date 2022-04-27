@@ -26,6 +26,9 @@ AStarFighter::AStarFighter()
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 
+	MeshHolder = CreateDefaultSubobject<USceneComponent>(TEXT("MeshHolder"));
+	MeshHolder->SetupAttachment(root);
+
 }
 
 
@@ -34,6 +37,8 @@ void AStarFighter::BeginPlay()
 {
 	Super::BeginPlay();
 	defaultCameraPos = CameraComp->GetRelativeLocation();
+
+	CameraArmDefaultTransform = CameraBoom->GetRelativeTransform();
 }
 
 
@@ -41,7 +46,7 @@ void AStarFighter::BeginPlay()
 void AStarFighter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
 
 	if (!HasAuthority() && IsLocallyControlled())
 	{
@@ -63,7 +68,7 @@ void AStarFighter::Tick(float DeltaTime)
 
 	if (!IsLocallyControlled()) { return; }
 	UpdateCameraOffset(DeltaTime);
-
+	UpdateCameraRotation(DeltaTime);
 }
 
 
@@ -128,7 +133,7 @@ float AStarFighter::GetUpdatedRotAxis(float DeltaTime, float speed, float& veloc
 	return input * speed * velocity;
 }
 
-float AStarFighter::GetRotVelocity(float DeltaTime, float currentVel,bool bAccCondition)
+float AStarFighter::GetRotVelocity(float DeltaTime, float currentVel, bool bAccCondition)
 {
 	auto velocityChange = GetPropotionalVelocityChange(
 		DeltaTime,
@@ -140,7 +145,7 @@ float AStarFighter::GetRotVelocity(float DeltaTime, float currentVel,bool bAccCo
 }
 
 void AStarFighter::UpdateCameraOffset(float DeltaTime)
-{	
+{
 
 	auto yVel = ((rollVelocity * pitchVelocity) + yawVelocity);
 	auto yInput = FMath::Clamp(FMath::Abs(roll * pitch) + FMath::Abs(yaw), 0.f, 1.f);
@@ -157,6 +162,34 @@ void AStarFighter::UpdateCameraOffset(float DeltaTime)
 
 	auto currentCamPos = CameraComp->GetRelativeLocation();
 	CameraComp->SetRelativeLocation(FMath::Lerp(currentCamPos, offsetVec, DeltaTime));
+}
+
+void AStarFighter::UpdateCameraRotation(float DeltaTime)
+{
+	FRotator newRotation = FRotator(CameraVertical * CameraRotationSpeed, CameraHorizontal * CameraRotationSpeed, 0.f) * DeltaTime;
+
+	FQuat quatRotation = FQuat(CameraBoom->GetRelativeRotation() + newRotation);
+
+	CameraBoom->SetRelativeRotation(quatRotation);
+
+	if (bFreeCameraLook) { return; }
+
+	bShouldResetCamera = bNoHorizontalCamInput && bNoVerticalCamInput;
+
+	if (bShouldResetCamera)
+	{
+		CameraResetStartTimer = FMath::Clamp(CameraResetStartTimer - DeltaTime, 0.f, CameraResetStartTimerMax);
+	}
+
+	if (FMath::IsNearlyZero(CameraResetStartTimer))
+	{
+		auto currentRot = CameraBoom->GetRelativeRotation();
+		CameraBoom->SetRelativeRotation(
+			FQuat::Slerp(FQuat(currentRot),
+				CameraArmDefaultTransform.GetRotation(),
+				CameraResetTime));
+		CameraResetTime = FMath::Clamp(CameraResetTime + (DeltaTime * CameraResetSpeed), 0.f, 1.f);
+	}
 }
 
 float AStarFighter::GetLinearVelocityChange(float deltaTime, float accelSpeed, float decelSpeed, bool changeCondition)
@@ -182,6 +215,9 @@ void AStarFighter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	InputComponent->BindAxis("Roll", this, &AStarFighter::ReadRoll);
 	InputComponent->BindAxis("Pitch", this, &AStarFighter::ReadPitch);
 	InputComponent->BindAxis("Yaw", this, &AStarFighter::ReadYaw);
+	InputComponent->BindAxis("CameraHorizontal", this, &AStarFighter::ReadCameraHorizontal);
+	InputComponent->BindAxis("CameraVertical", this, &AStarFighter::ReadCameraVertical);
+	InputComponent->BindAction("FreeCameraLook", IE_Pressed, this, &AStarFighter::ToggleCameraFreeLook);
 }
 
 void AStarFighter::ReadThrottle(float value)
@@ -220,6 +256,28 @@ void AStarFighter::ReadYaw(float value)
 	}
 	yaw = FMath::Clamp(value, -1.f, 1.f);;
 	bUpdateYawVel = true;
+}
+
+
+void AStarFighter::ReadCameraHorizontal(float value)
+{
+	bNoHorizontalCamInput = FMath::IsNearlyZero(value);
+	CameraResetStartTimer = bNoHorizontalCamInput ? CameraResetStartTimer : CameraResetStartTimerMax;
+	CameraResetTime = bNoHorizontalCamInput ? CameraResetTime : 0.f;
+	CameraHorizontal = value;
+}
+
+void AStarFighter::ReadCameraVertical(float value)
+{
+	bNoVerticalCamInput = FMath::IsNearlyZero(value);
+	CameraResetStartTimer = bNoVerticalCamInput ? CameraResetStartTimer : CameraResetStartTimerMax;
+	CameraResetTime = bNoVerticalCamInput ? CameraResetTime : 0.f;
+	CameraVertical = value;
+}
+
+void AStarFighter::ToggleCameraFreeLook()
+{
+	bFreeCameraLook = !bFreeCameraLook;
 }
 
 void AStarFighter::ClearUsedMoves(FFlightMove previousMove)

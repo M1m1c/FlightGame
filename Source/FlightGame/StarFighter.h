@@ -86,6 +86,7 @@ protected:
 	float GetRotVelocity(float DeltaTime, float currentVel, bool bAccCondition);
 
 	void UpdateCameraOffset(float DeltaTime);
+	void UpdateCameraRotation(float DeltaTime);
 
 	void ReadThrottle(float value);
 
@@ -94,6 +95,12 @@ protected:
 	void ReadPitch(float value);
 
 	void ReadYaw(float value);
+
+	void ReadCameraHorizontal(float value);
+
+	void ReadCameraVertical(float value);
+
+	void ToggleCameraFreeLook();
 
 	void ClearUsedMoves(FFlightMove previousMove);
 
@@ -118,6 +125,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* CameraComp;
 
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class USceneComponent* MeshHolder;
+
 	TArray<FFlightMove> UnusedMoves;
 
 	UPROPERTY(EditDefaultsOnly)
@@ -137,6 +148,19 @@ protected:
 	float rollSpeed = 100.f;
 	float pitchSpeed = 75.f;
 	float yawSpeed = 25.f;
+
+	FTransform CameraArmDefaultTransform;
+	float CameraRotationSpeed = 100.f;
+	float CameraHorizontal = 0.f;
+	float CameraVertical = 0.f;
+	float CameraResetStartTimerMax = 0.4f;
+	float CameraResetStartTimer = 0.f;
+	float CameraResetTime = 0.f;
+	float CameraResetSpeed = 0.2f;
+	bool bFreeCameraLook = false;
+	bool bShouldResetCamera = false;
+	bool bNoHorizontalCamInput = false;
+	bool bNoVerticalCamInput = false;
 
 	UPROPERTY(BlueprintReadOnly)
 	float rollVelocity = .0f;
