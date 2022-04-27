@@ -18,8 +18,11 @@ AStarFighter::AStarFighter()
 	root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent = root;
 
+	CameraHolder = CreateDefaultSubobject<USceneComponent>(TEXT("CameraHolder"));
+	CameraHolder->SetupAttachment(root);
+
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(root);
+	CameraBoom->SetupAttachment(CameraHolder);
 	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character
 
 	// Create a follow camera
@@ -38,6 +41,7 @@ void AStarFighter::BeginPlay()
 	Super::BeginPlay();
 	defaultCameraPos = CameraComp->GetRelativeLocation();
 
+	CameraHolderDefaultTransform = CameraHolder->GetRelativeTransform();
 	CameraArmDefaultTransform = CameraBoom->GetRelativeTransform();
 }
 
@@ -166,11 +170,13 @@ void AStarFighter::UpdateCameraOffset(float DeltaTime)
 
 void AStarFighter::UpdateCameraRotation(float DeltaTime)
 {
-	FRotator newRotation = FRotator(CameraVertical * CameraRotationSpeed, CameraHorizontal * CameraRotationSpeed, 0.f) * DeltaTime;
+	FRotator newArmRotation = FRotator(CameraVertical * CameraRotationSpeed,0.f, 0.f) * DeltaTime;
+	FQuat quatArmRotation = FQuat(newArmRotation);
+	CameraBoom->AddRelativeRotation(quatArmRotation);
 
-	FQuat quatRotation = FQuat(CameraBoom->GetRelativeRotation() + newRotation);
-
-	CameraBoom->SetRelativeRotation(quatRotation);
+	FRotator newHolderRotation = FRotator(0.f, CameraHorizontal * CameraRotationSpeed, 0.f) * DeltaTime;
+	FQuat quatHolderRotation = FQuat(newHolderRotation);
+	CameraHolder->AddRelativeRotation(quatHolderRotation);
 
 	if (bFreeCameraLook) { return; }
 
@@ -183,11 +189,18 @@ void AStarFighter::UpdateCameraRotation(float DeltaTime)
 
 	if (FMath::IsNearlyZero(CameraResetStartTimer))
 	{
-		auto currentRot = CameraBoom->GetRelativeRotation();
+		auto currentArmRot = CameraBoom->GetRelativeRotation();
 		CameraBoom->SetRelativeRotation(
-			FQuat::Slerp(FQuat(currentRot),
+			FQuat::Slerp(FQuat(currentArmRot),
 				CameraArmDefaultTransform.GetRotation(),
 				CameraResetTime));
+
+		auto currentHolderRot = CameraHolder->GetRelativeRotation();
+		CameraHolder->SetRelativeRotation(
+			FQuat::Slerp(FQuat(currentHolderRot),
+				CameraHolderDefaultTransform.GetRotation(),
+				CameraResetTime));
+
 		CameraResetTime = FMath::Clamp(CameraResetTime + (DeltaTime * CameraResetSpeed), 0.f, 1.f);
 	}
 }

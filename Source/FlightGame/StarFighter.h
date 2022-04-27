@@ -119,15 +119,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USceneComponent* root;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USceneComponent* CameraHolder;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* CameraComp;
 
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	class USceneComponent* MeshHolder;
+	USceneComponent* MeshHolder;
 
 	TArray<FFlightMove> UnusedMoves;
 
@@ -149,6 +151,7 @@ protected:
 	float pitchSpeed = 75.f;
 	float yawSpeed = 25.f;
 
+	FTransform CameraHolderDefaultTransform;
 	FTransform CameraArmDefaultTransform;
 	float CameraRotationSpeed = 100.f;
 	float CameraHorizontal = 0.f;
