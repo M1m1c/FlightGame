@@ -205,4 +205,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetMaxBoostTime();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnBoosted();
+
 };

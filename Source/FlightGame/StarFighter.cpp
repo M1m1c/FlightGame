@@ -324,7 +324,8 @@ void AStarFighter::ToggleCameraFreeLook()
 void AStarFighter::ReadBoostInput()
 {
 	if (boostTimer != maxBoostTime) { return; }
-	//TODO Create event that can be listened to in blueprint and have that activate the circle particle system
+	if (moveVelocity < 0.65f) { return; }
+	OnBoosted();
 	currentBoostAdditive = maxBoostVelocityAdditive;
 	boostTimer = 0.f;
 }
