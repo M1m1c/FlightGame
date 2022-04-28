@@ -170,6 +170,7 @@ void AStarFighter::UpdateCameraOffset(float DeltaTime)
 
 void AStarFighter::UpdateCameraRotation(float DeltaTime)
 {
+	if (CameraResetTime == 1.f && !bFreeCameraLook) { return; }
 	FRotator newArmRotation = FRotator(CameraVertical * CameraRotationSpeed,0.f, 0.f) * DeltaTime;
 	FQuat quatArmRotation = FQuat(newArmRotation);
 	CameraBoom->AddRelativeRotation(quatArmRotation);
