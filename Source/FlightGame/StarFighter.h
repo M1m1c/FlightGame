@@ -158,10 +158,10 @@ protected:
 	float pitchSpeed = 75.f;
 	float yawSpeed = 25.f;
 
-	float boostTimer = 0.2f;
-	float maxBoostTime = 0.2f;
+	float boostTimer = 1.f;
+	float maxBoostTime = 1.f;
 	float currentBoostAdditive = 0.f;
-	float maxBoostVelocityAdditive = 0.05f;
+	float maxBoostVelocityAdditive = 0.01f;
 
 	FTransform CameraHolderDefaultTransform;
 	FTransform CameraArmDefaultTransform;
