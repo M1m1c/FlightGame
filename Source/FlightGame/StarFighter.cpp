@@ -87,6 +87,8 @@ FFlightMove AStarFighter::CreateNewMove(float DeltaTime)
 	move.bUpdateRollVel = bUpdateRollVel;
 	move.bUpdatePitchVel = bUpdatePitchVel;
 	move.bUpdateYawVel = bUpdateYawVel;
+	move.boostTimer = boostTimer;
+	move.currentBoostAdditive = currentBoostAdditive;
 	move.TimeStamp = GetWorld()->GetTimeSeconds();//ARaceGameState::Get(this)->GetServerWorldTimeSeconds();
 	return move;
 }
@@ -107,7 +109,21 @@ void AStarFighter::UpdateShipMovement(const FFlightMove& move)
 		velDecelerationSpeed,
 		FMath::IsNearlyZero(move.throttle) == false);
 
-	moveVelocity = FMath::Clamp(moveVelocity + newVelocity, 0.2f, 1.f);
+	boostTimer = move.boostTimer;
+	//currentBoostAdditive = move.currentBoostAdditive;
+	auto bIsBoosting = boostTimer < maxBoostTime;
+	if (bIsBoosting) 
+	{ 
+		boostTimer = FMath::Clamp(boostTimer + move.DeltaTime, 0.f, maxBoostTime); 
+		
+		auto alpha = FMath::GetMappedRangeValueClamped(FVector2D(0.f, maxBoostTime), FVector2D(0.f, 1.f), boostTimer);
+		currentBoostAdditive = FMath::Lerp(maxBoostTime, 0.f, alpha);
+	}
+
+	auto clampMaxValue = bIsBoosting ? 1.f + currentBoostAdditive : 1.f;
+	auto velocityChange = moveVelocity + newVelocity + (bIsBoosting ? currentBoostAdditive : 0.f);
+	moveVelocity = FMath::Clamp(velocityChange, 0.2f, clampMaxValue);
+
 
 	FVector location = GetActorLocation();
 	location += GetActorForwardVector() * (MaxSpeed * move.DeltaTime * moveVelocity);
@@ -232,6 +248,17 @@ void AStarFighter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	InputComponent->BindAxis("CameraHorizontal", this, &AStarFighter::ReadCameraHorizontal);
 	InputComponent->BindAxis("CameraVertical", this, &AStarFighter::ReadCameraVertical);
 	InputComponent->BindAction("FreeCameraLook", IE_Pressed, this, &AStarFighter::ToggleCameraFreeLook);
+	InputComponent->BindAction("BoostInput", IE_Pressed, this, &AStarFighter::ReadBoostInput);
+}
+
+float AStarFighter::GetBoostTimer()
+{
+	return boostTimer;
+}
+
+float AStarFighter::GetMaxBoostTime()
+{
+	return maxBoostTime;
 }
 
 void AStarFighter::ReadThrottle(float value)
@@ -292,6 +319,13 @@ void AStarFighter::ReadCameraVertical(float value)
 void AStarFighter::ToggleCameraFreeLook()
 {
 	bFreeCameraLook = !bFreeCameraLook;
+}
+
+void AStarFighter::ReadBoostInput()
+{
+	if (boostTimer != maxBoostTime) { return; }
+	currentBoostAdditive = maxBoostVelocityAdditive;
+	boostTimer = 0.f;
 }
 
 void AStarFighter::ClearUsedMoves(FFlightMove previousMove)

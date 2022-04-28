@@ -21,6 +21,11 @@ public:
 	float yaw = .0f;
 
 	UPROPERTY()
+	float boostTimer = 0.f;
+	UPROPERTY()
+	float currentBoostAdditive = 0.f;
+
+	UPROPERTY()
 	bool bUpdateRollVel = false;
 	UPROPERTY()
 	bool bUpdatePitchVel = false;
@@ -102,6 +107,8 @@ protected:
 
 	void ToggleCameraFreeLook();
 
+	void ReadBoostInput();
+
 	void ClearUsedMoves(FFlightMove previousMove);
 
 	FFlightMove CreateNewMove(float DeltaTime);
@@ -151,6 +158,11 @@ protected:
 	float pitchSpeed = 75.f;
 	float yawSpeed = 25.f;
 
+	float boostTimer = 0.2f;
+	float maxBoostTime = 0.2f;
+	float currentBoostAdditive = 0.f;
+	float maxBoostVelocityAdditive = 0.05f;
+
 	FTransform CameraHolderDefaultTransform;
 	FTransform CameraArmDefaultTransform;
 	float CameraRotationSpeed = 100.f;
@@ -186,5 +198,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UFUNCTION(BlueprintCallable)
+	float GetBoostTimer();
+
+	UFUNCTION(BlueprintCallable)
+	float GetMaxBoostTime();
 
 };
