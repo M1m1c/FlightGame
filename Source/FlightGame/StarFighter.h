@@ -191,7 +191,7 @@ protected:
 	FVector defaultCameraPos;
 	float maxOffset = 100.f;
 
-	
+	float armExtensionAngle = 0.5f;
 
 public:	
 	// Called every frame
@@ -204,6 +204,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	float GetMaxBoostTime();
+
+
+	UFUNCTION(BlueprintCallable)
+	bool IsCameraFacingSameWayAsShip();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnBoosted();

@@ -261,6 +261,12 @@ float AStarFighter::GetMaxBoostTime()
 	return maxBoostTime;
 }
 
+bool AStarFighter::IsCameraFacingSameWayAsShip()
+{
+	float angle =FVector::DotProduct(root->GetForwardVector(), CameraComp->GetForwardVector());
+	return angle > armExtensionAngle ? true : false;
+}
+
 void AStarFighter::ReadThrottle(float value)
 {
 	throttle = FMath::Clamp(value, -1.f, 1.f);;
