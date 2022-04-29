@@ -336,6 +336,10 @@ void AStarFighter::ReadBoostInput()
 	boostTimer = 0.f;
 }
 
+void AStarFighter::SwitchTarget()
+{
+}
+
 void AStarFighter::ClearUsedMoves(FFlightMove previousMove)
 {
 	TArray<FFlightMove> newMoves;

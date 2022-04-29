@@ -109,6 +109,8 @@ protected:
 
 	void ReadBoostInput();
 
+	void SwitchTarget();
+
 	void ClearUsedMoves(FFlightMove previousMove);
 
 	FFlightMove CreateNewMove(float DeltaTime);
