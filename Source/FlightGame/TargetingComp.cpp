@@ -18,7 +18,7 @@ void UTargetingComp::BeginPlay()
 
 	auto gameState = AFlightGameState::Get(this);
 	if (!ensure(gameState)) { return; }
-
+	if (!ensure(gameState->TargetingMaster)) { return; }
 	//gameState->OnGameStateInitalisation.AddDynamic(this, &UTargetingComp::Initalise);
 	gameState->TargetingMaster->OnUpdateTargets.AddDynamic(this, &UTargetingComp::UpdateTargetArray);
 	availableTargets = gameState->TargetingMaster->GetTargetsArray();

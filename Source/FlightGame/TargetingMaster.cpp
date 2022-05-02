@@ -13,6 +13,7 @@
 ATargetingMaster::ATargetingMaster()
 {
 	bReplicates = true;
+	bAlwaysRelevant = true;
 }
 
 void ATargetingMaster::AddToTargetsArray(AActor* targetToAdd)
