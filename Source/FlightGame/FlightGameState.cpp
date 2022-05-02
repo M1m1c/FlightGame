@@ -3,13 +3,8 @@
 
 #include "FlightGameState.h"
 
-void AFlightGameState::AddToTargetsArray(AActor* targetToAdd)
+AFlightGameState* AFlightGameState::Get(UObject* WorldContext)
 {
-	totalTargetsInLevel.Add(targetToAdd);
-}
-
-TArray<AActor*> AFlightGameState::GetTargetsArray()
-{
-	TArray<AActor*> newArray(totalTargetsInLevel);
-	return newArray;
+	UWorld* World = WorldContext->GetWorld();
+	return World->GetGameState<AFlightGameState>();
 }

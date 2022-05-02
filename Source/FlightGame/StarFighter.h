@@ -140,6 +140,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USceneComponent* MeshHolder;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UTargetingComp* TargetingComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UTargetableComp* TargetableComp;
+
 	TArray<FFlightMove> UnusedMoves;
 
 	UPROPERTY(EditDefaultsOnly)

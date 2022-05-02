@@ -6,17 +6,20 @@
 #include "GameFramework/GameStateBase.h"
 #include "FlightGameState.generated.h"
 
-/**
- * 
- */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInitialiseGameState);
+
 UCLASS()
 class FLIGHTGAME_API AFlightGameState : public AGameStateBase
 {
-	GENERATED_BODY()
+	GENERATED_BODY()		
 
-		TArray<AActor*> totalTargetsInLevel;
 public:
-	void AddToTargetsArray(AActor* targetToAdd);
-	
-	TArray<AActor*> GetTargetsArray();
+
+	FInitialiseGameState OnGameStateInitalisation;
+
+	UFUNCTION()
+	static AFlightGameState* Get(UObject* WorldContext);
+
+	UPROPERTY()
+	class ATargetingMaster* TargetingMaster;
 };

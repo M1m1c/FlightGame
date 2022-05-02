@@ -2,6 +2,10 @@
 
 
 #include "StarFighter.h"
+
+#include "TargetingComp.h"
+#include "TargetableComp.h"
+
 #include "Net/UnrealNetwork.h"
 #include <Runtime/Engine/Classes/GameFramework/SpringArmComponent.h>
 #include <Runtime/Engine/Classes/Camera/CameraComponent.h>
@@ -31,6 +35,9 @@ AStarFighter::AStarFighter()
 
 	MeshHolder = CreateDefaultSubobject<USceneComponent>(TEXT("MeshHolder"));
 	MeshHolder->SetupAttachment(root);
+
+	TargetingComp = CreateDefaultSubobject<UTargetingComp>(TEXT("TargetingComp"));
+	TargetableComp = CreateDefaultSubobject<UTargetableComp>(TEXT("TargetableComp"));
 
 }
 

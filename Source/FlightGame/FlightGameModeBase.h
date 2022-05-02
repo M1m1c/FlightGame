@@ -4,14 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "FlightGameGameModeBase.generated.h"
+#include "FlightGameModeBase.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class FLIGHTGAME_API AFlightGameGameModeBase : public AGameModeBase
+class FLIGHTGAME_API AFlightGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+public:
+
+	virtual void BeginPlay() override;
+
 };
