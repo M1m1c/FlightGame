@@ -256,6 +256,7 @@ void AStarFighter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	InputComponent->BindAxis("CameraVertical", this, &AStarFighter::ReadCameraVertical);
 	InputComponent->BindAction("FreeCameraLook", IE_Pressed, this, &AStarFighter::ToggleCameraFreeLook);
 	InputComponent->BindAction("BoostInput", IE_Pressed, this, &AStarFighter::ReadBoostInput);
+	InputComponent->BindAction("SwitchTarget", IE_Pressed, this, &AStarFighter::SwitchTarget);
 }
 
 float AStarFighter::GetBoostTimer()
@@ -343,8 +344,20 @@ void AStarFighter::ReadBoostInput()
 	boostTimer = 0.f;
 }
 
+
 void AStarFighter::SwitchTarget()
 {
+	auto target = TargetingComp->GetTargetFromIndex(0);
+	//TODO figure out why it is null when playing as client
+	if (target) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("switched target to %s"), *target->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("switch target was null"));
+	}
+	OnChangeTarget.Broadcast(target);
 }
 
 void AStarFighter::ClearUsedMoves(FFlightMove previousMove)

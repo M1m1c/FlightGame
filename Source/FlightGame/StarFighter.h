@@ -6,6 +6,8 @@
 #include "GameFramework/Pawn.h"
 #include "StarFighter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeTarget, AActor*, target);
+
 USTRUCT()
 struct FFlightMove
 {
@@ -61,7 +63,6 @@ public:
 	FFlightMove previousMove;
 };
 
-
 UCLASS()
 class FLIGHTGAME_API AStarFighter : public APawn
 {
@@ -70,6 +71,8 @@ class FLIGHTGAME_API AStarFighter : public APawn
 public:
 	// Sets default values for this pawn's properties
 	AStarFighter();	
+
+	FChangeTarget OnChangeTarget;
 
 protected:
 	// Called when the game starts or when spawned

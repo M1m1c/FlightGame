@@ -11,8 +11,4 @@ void AFlightGameModeBase::BeginPlay()
 	
 	auto gamestate = AFlightGameState::Get(this);
 	gamestate->Multicast_InitialiseState();
-	//gamestate->TargetingMaster = targetingMaster;
-	//targetingMaster->Initalise();
-	//gamestate->OnGameStateInitalisation.Broadcast();
-
 }

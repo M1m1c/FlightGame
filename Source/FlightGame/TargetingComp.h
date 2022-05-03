@@ -16,6 +16,8 @@ public:
 	// Sets default values for this component's properties
 	UTargetingComp();
 
+	AActor* GetTargetFromIndex(int32 index);
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

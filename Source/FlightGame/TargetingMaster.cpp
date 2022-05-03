@@ -19,12 +19,12 @@ ATargetingMaster::ATargetingMaster()
 void ATargetingMaster::AddToTargetsArray(AActor* targetToAdd)
 {
 	if (!this) { return; }
-	if (totalTargetsInLevel.Find(targetToAdd)) { return; }
+	if (!totalTargetsInLevel.Find(targetToAdd)) { return; }
 	totalTargetsInLevel.Add(targetToAdd);
-	OnUpdateTargets.Broadcast(totalTargetsInLevel);
+	OnUpdateTargets.Broadcast(GetTargetsArray());
 
 	UE_LOG(LogTemp, Warning, TEXT("Added to target array %s"), *targetToAdd->GetName());
-	UE_LOG(LogTemp, Warning, TEXT("Target count: %d"), totalTargetsInLevel.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("Target count: %d"), totalTargetsInLevel.Num());
 }
 
 TArray<AActor*> ATargetingMaster::GetTargetsArray()

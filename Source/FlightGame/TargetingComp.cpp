@@ -10,6 +10,13 @@ UTargetingComp::UTargetingComp()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+AActor* UTargetingComp::GetTargetFromIndex(int32 index)
+{
+	AActor* retval = nullptr;
+	if (availableTargets.IsValidIndex(index)) { retval = availableTargets[index]; }
+	return retval;
+}
+
 
 //register initalise so that it gets called when the state is finished setting up
 void UTargetingComp::BeginPlay()
@@ -19,6 +26,9 @@ void UTargetingComp::BeginPlay()
 	auto gameState = AFlightGameState::Get(this);
 	if (!ensure(gameState)) { return; }
 	gameState->OnGameStateInitalisation.AddDynamic(this, &UTargetingComp::Initalise);
+
+	if (!gameState->GetIsInitalised()) { return; }
+	Initalise();
 }
 
 void UTargetingComp::Initalise()
@@ -33,6 +43,11 @@ void UTargetingComp::Initalise()
 
 void UTargetingComp::UpdateTargetArray(TArray<AActor*> newTargetList)
 {
+	if (newTargetList.Num() == 0) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("new target list was empty"));
+		return; 
+	}
 	availableTargets = newTargetList;
 	UE_LOG(LogTemp, Warning, TEXT("@UpdateTargetArray target count: %d"), availableTargets.Num());
 }

@@ -12,6 +12,8 @@ UCLASS()
 class FLIGHTGAME_API AFlightGameState : public AGameStateBase
 {
 	GENERATED_BODY()		
+protected:
+	bool bInitalised = false;
 
 public:
 
@@ -25,4 +27,6 @@ public:
 
 	UPROPERTY()
 	class ATargetingMaster* TargetingMaster;
+
+	bool GetIsInitalised();
 };
