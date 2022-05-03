@@ -2,6 +2,14 @@
 
 
 #include "FlightGameState.h"
+#include "TargetingMaster.h"
+
+void AFlightGameState::Multicast_InitialiseState_Implementation()
+{
+	ATargetingMaster* targetingMaster = GetWorld()->SpawnActor<ATargetingMaster>();
+	TargetingMaster = targetingMaster;
+	OnGameStateInitalisation.Broadcast();
+}
 
 AFlightGameState* AFlightGameState::Get(UObject* WorldContext)
 {

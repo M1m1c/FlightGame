@@ -11,7 +11,7 @@ UTargetableComp::UTargetableComp()
 }
 
 
-// Called when the game starts
+//register addmyself so that it gets called when the state is finished setting up
 void UTargetableComp::BeginPlay()
 {
 	Super::BeginPlay();
@@ -26,10 +26,10 @@ void UTargetableComp::BeginPlay()
 
 void UTargetableComp::AddMyselfAsTarget()
 {
-
 	auto flightGameState = AFlightGameState::Get(this);
 	if (!ensure(flightGameState)) { return; }
 	flightGameState->TargetingMaster->AddToTargetsArray(GetOwner());
+	flightGameState->OnGameStateInitalisation.RemoveDynamic(this, &UTargetableComp::AddMyselfAsTarget);
 }
 
 

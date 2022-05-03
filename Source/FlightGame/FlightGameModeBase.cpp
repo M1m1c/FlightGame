@@ -3,15 +3,16 @@
 
 #include "FlightGameModeBase.h"
 #include "FlightGameState.h"
-#include "TargetingMaster.h"
+
 
 void AFlightGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
-	ATargetingMaster* targetingMaster = GetWorld()->SpawnActor<ATargetingMaster>();
+	
 	auto gamestate = AFlightGameState::Get(this);
-	gamestate->TargetingMaster = targetingMaster;
+	gamestate->Multicast_InitialiseState();
+	//gamestate->TargetingMaster = targetingMaster;
 	//targetingMaster->Initalise();
-	gamestate->OnGameStateInitalisation.Broadcast();
+	//gamestate->OnGameStateInitalisation.Broadcast();
 
 }

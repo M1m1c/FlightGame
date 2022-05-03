@@ -15,6 +15,9 @@ class FLIGHTGAME_API AFlightGameState : public AGameStateBase
 
 public:
 
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_InitialiseState();
+
 	FInitialiseGameState OnGameStateInitalisation;
 
 	UFUNCTION()

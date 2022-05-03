@@ -11,33 +11,29 @@ UTargetingComp::UTargetingComp()
 }
 
 
-// Called when the game starts
+//register initalise so that it gets called when the state is finished setting up
 void UTargetingComp::BeginPlay()
 {
 	Super::BeginPlay();
 
 	auto gameState = AFlightGameState::Get(this);
 	if (!ensure(gameState)) { return; }
-	if (!ensure(gameState->TargetingMaster)) { return; }
-	//gameState->OnGameStateInitalisation.AddDynamic(this, &UTargetingComp::Initalise);
-	gameState->TargetingMaster->OnUpdateTargets.AddDynamic(this, &UTargetingComp::UpdateTargetArray);
-	availableTargets = gameState->TargetingMaster->GetTargetsArray();
-	UE_LOG(LogTemp, Warning, TEXT("@TargetingComp target count: %d"), availableTargets.Num());
+	gameState->OnGameStateInitalisation.AddDynamic(this, &UTargetingComp::Initalise);
 }
 
 void UTargetingComp::Initalise()
 {
 	auto gameState = AFlightGameState::Get(this);
 	if (!ensure(gameState)) { return; }
-
+	if (!ensure(gameState->TargetingMaster)) { return; }
 	gameState->TargetingMaster->OnUpdateTargets.AddDynamic(this, &UTargetingComp::UpdateTargetArray);
 	availableTargets = gameState->TargetingMaster->GetTargetsArray();
-	UE_LOG(LogTemp, Warning, TEXT("@TargetingComp target count: %d"), availableTargets.Num());
+	gameState->OnGameStateInitalisation.RemoveDynamic(this, &UTargetingComp::Initalise);
 }
 
 void UTargetingComp::UpdateTargetArray(TArray<AActor*> newTargetList)
 {
 	availableTargets = newTargetList;
-	UE_LOG(LogTemp, Warning, TEXT("@TargetingComp target count: %d"), availableTargets.Num());
+	UE_LOG(LogTemp, Warning, TEXT("@UpdateTargetArray target count: %d"), availableTargets.Num());
 }
 
