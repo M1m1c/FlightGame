@@ -5,6 +5,8 @@
 #include "FlightGameState.h"
 #include "TargetingMaster.h"
 
+#include "Net/UnrealNetwork.h"
+
 UTargetingComp::UTargetingComp()
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -39,6 +41,7 @@ void UTargetingComp::Initalise()
 	gameState->TargetingMaster->OnUpdateTargets.AddDynamic(this, &UTargetingComp::UpdateTargetArray);
 	availableTargets = gameState->TargetingMaster->GetTargetsArray();
 	gameState->OnGameStateInitalisation.RemoveDynamic(this, &UTargetingComp::Initalise);
+	UE_LOG(LogTemp, Warning, TEXT("@Initalise target count: %d"), availableTargets.Num());
 }
 
 void UTargetingComp::UpdateTargetArray(TArray<AActor*> newTargetList)
@@ -52,3 +55,9 @@ void UTargetingComp::UpdateTargetArray(TArray<AActor*> newTargetList)
 	UE_LOG(LogTemp, Warning, TEXT("@UpdateTargetArray target count: %d"), availableTargets.Num());
 }
 
+void UTargetingComp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UTargetingComp, availableTargets);
+}

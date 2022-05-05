@@ -21,14 +21,14 @@ void UTargetableComp::BeginPlay()
 	flightGameState->OnGameStateInitalisation.AddDynamic(this, &UTargetableComp::AddMyselfAsTarget);
 
 	if (!flightGameState->TargetingMaster) { return; }
-	flightGameState->TargetingMaster->AddToTargetsArray(GetOwner());
+	flightGameState->TargetingMaster->Multicast_AddToTargetsArray(GetOwner());
 }
 
 void UTargetableComp::AddMyselfAsTarget()
 {
 	auto flightGameState = AFlightGameState::Get(this);
 	if (!ensure(flightGameState)) { return; }
-	flightGameState->TargetingMaster->AddToTargetsArray(GetOwner());
+	flightGameState->TargetingMaster->Multicast_AddToTargetsArray(GetOwner());
 	flightGameState->OnGameStateInitalisation.RemoveDynamic(this, &UTargetableComp::AddMyselfAsTarget);
 }
 

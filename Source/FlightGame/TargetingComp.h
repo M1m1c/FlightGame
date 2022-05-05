@@ -28,6 +28,6 @@ protected:
 	UFUNCTION()
 	void UpdateTargetArray(TArray<AActor*> newTargetList);
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	TArray<AActor*> availableTargets;
 };

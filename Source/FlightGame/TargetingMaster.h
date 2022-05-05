@@ -15,6 +15,7 @@ class FLIGHTGAME_API ATargetingMaster : public AActor
 	GENERATED_BODY()
 
 		ATargetingMaster();
+		UPROPERTY(Replicated)
 		TArray<AActor*> totalTargetsInLevel;
 public:
 
@@ -23,7 +24,8 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FTargetsChangedInWorld OnUpdateTargets;
 
-	void AddToTargetsArray(AActor* targetToAdd);
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_AddToTargetsArray(AActor* targetToAdd);
 
 	TArray<AActor*> GetTargetsArray();
 	

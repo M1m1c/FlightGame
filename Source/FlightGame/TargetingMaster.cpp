@@ -3,6 +3,8 @@
 
 #include "TargetingMaster.h"
 
+#include "Net/UnrealNetwork.h"
+
 
 //void ATargetingMaster::Initalise()
 //{
@@ -16,7 +18,7 @@ ATargetingMaster::ATargetingMaster()
 	bAlwaysRelevant = true;
 }
 
-void ATargetingMaster::AddToTargetsArray(AActor* targetToAdd)
+void ATargetingMaster::Multicast_AddToTargetsArray_Implementation(AActor* targetToAdd)
 {
 	if (!this) { return; }
 	if (!totalTargetsInLevel.Find(targetToAdd)) { return; }
@@ -31,4 +33,12 @@ TArray<AActor*> ATargetingMaster::GetTargetsArray()
 {
 	TArray<AActor*> newArray(totalTargetsInLevel);
 	return newArray;
+}
+
+
+void ATargetingMaster::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ATargetingMaster, totalTargetsInLevel);
 }
