@@ -21,8 +21,14 @@ AActor* UTargetingComp::GetTargetFromIndex(int32 index)
 	return retval;
 }
 
+int UTargetingComp::GetTargetCount()
+{
+	return availableTargets.Num();
+}
+
 
 //register initalise so that it gets called when the state is finished setting up
+//Only gets called on server
 void UTargetingComp::BeginPlay()
 {
 	Super::BeginPlay();
@@ -35,6 +41,7 @@ void UTargetingComp::BeginPlay()
 	Initalise();
 }
 
+//Only gets called on server
 void UTargetingComp::Initalise()
 {
 	auto gameState = AFlightGameState::Get(this);
@@ -46,6 +53,7 @@ void UTargetingComp::Initalise()
 	UE_LOG(LogTemp, Warning, TEXT("@Initalise target count: %d"), availableTargets.Num());
 }
 
+//Only gets called on server
 void UTargetingComp::UpdateTargetArray(TArray<AActor*> newTargetList)
 {
 	if (newTargetList.Num() == 0) 

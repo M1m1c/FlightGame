@@ -13,13 +13,15 @@ class FLIGHTGAME_API UTargetingComp : public UActorComponent
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
+	
 	UTargetingComp();
 
 	AActor* GetTargetFromIndex(int32 index);
 
+	int GetTargetCount();
+
 protected:
-	// Called when the game starts
+
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
