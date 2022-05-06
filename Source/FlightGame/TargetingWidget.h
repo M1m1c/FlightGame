@@ -18,6 +18,9 @@ protected:
 	class APlayerController* owningPlayer;
 	AActor* currentTarget;
 
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	class UTextBlock* NameTextBlock;
+
 	int32 sizeX;
 	int32 sizeY;
 	int32 offset = 25;

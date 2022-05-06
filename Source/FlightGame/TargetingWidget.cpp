@@ -3,6 +3,8 @@
 
 #include "TargetingWidget.h"
 
+#include "Runtime/UMG/Public/UMG.h"
+
 void UTargetingWidget::Initalise(APlayerController* owner)
 {
 	owningPlayer = owner;
@@ -12,6 +14,10 @@ void UTargetingWidget::Initalise(APlayerController* owner)
 void UTargetingWidget::SetTarget(AActor* target)
 {
 	currentTarget = target;
+	if (NameTextBlock)
+	{
+		NameTextBlock->SetText(FText::FromString(currentTarget->GetName()));
+	}
 }
 
 void UTargetingWidget::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
