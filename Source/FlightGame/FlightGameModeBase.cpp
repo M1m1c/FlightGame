@@ -10,5 +10,5 @@ void AFlightGameModeBase::BeginPlay()
 	Super::BeginPlay();
 	
 	auto gamestate = AFlightGameState::Get(this);
-	gamestate->Multicast_InitialiseState();
+	gamestate->InitialiseState();
 }

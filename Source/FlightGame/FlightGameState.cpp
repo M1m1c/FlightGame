@@ -4,7 +4,7 @@
 #include "FlightGameState.h"
 #include "TargetingMaster.h"
 
-void AFlightGameState::Multicast_InitialiseState_Implementation()
+void AFlightGameState::InitialiseState()
 {
 	ATargetingMaster* targetingMaster = GetWorld()->SpawnActor<ATargetingMaster>();
 	TargetingMaster = targetingMaster;

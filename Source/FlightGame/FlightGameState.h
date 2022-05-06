@@ -17,8 +17,7 @@ protected:
 
 public:
 
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_InitialiseState();
+	void InitialiseState();
 
 	FInitialiseGameState OnGameStateInitalisation;
 
