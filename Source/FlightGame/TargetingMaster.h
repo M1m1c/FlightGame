@@ -19,8 +19,6 @@ class FLIGHTGAME_API ATargetingMaster : public AActor
 		TArray<AActor*> totalTargetsInLevel;
 public:
 
-	/*void Initalise();*/
-
 	UPROPERTY(BlueprintAssignable)
 	FTargetsChangedInWorld OnUpdateTargets;
 

@@ -6,12 +6,6 @@
 #include "Net/UnrealNetwork.h"
 
 
-//void ATargetingMaster::Initalise()
-//{
-//	if (!this) { return; }
-//	UE_LOG(LogTemp, Warning, TEXT("initialised: %s"), *this->GetName());
-//}
-
 ATargetingMaster::ATargetingMaster()
 {
 	bReplicates = true;
@@ -27,7 +21,6 @@ void ATargetingMaster::Multicast_AddToTargetsArray_Implementation(AActor* target
 	OnUpdateTargets.Broadcast(GetTargetsArray());
 
 	UE_LOG(LogTemp, Warning, TEXT("Added to target array %s"), *targetToAdd->GetName());
-	//UE_LOG(LogTemp, Warning, TEXT("Target count: %d"), totalTargetsInLevel.Num());
 }
 
 TArray<AActor*> ATargetingMaster::GetTargetsArray()

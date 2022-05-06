@@ -8,7 +8,6 @@
 void UTargetingWidget::Initalise(APlayerController* owner)
 {
 	owningPlayer = owner;
-	owningPlayer->GetViewportSize(sizeX, sizeY);
 }
 
 void UTargetingWidget::SetTarget(AActor* target)
@@ -27,9 +26,12 @@ void UTargetingWidget::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 	if (!currentTarget) { return; }
 
 	
-
 	FVector2D screenPos;	
+	int32 sizeX;
+	int32 sizeY;
+
 	owningPlayer->ProjectWorldLocationToScreen(currentTarget->GetActorLocation(), screenPos, true);	
+	owningPlayer->GetViewportSize(sizeX, sizeY);
 
 	auto clampedX = FMath::Clamp((int32)screenPos.X, offset, sizeX-offset);
 	auto clampedY = FMath::Clamp((int32)screenPos.Y, offset, sizeY-offset);
