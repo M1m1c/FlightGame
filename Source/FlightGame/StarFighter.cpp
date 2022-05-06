@@ -345,17 +345,10 @@ void AStarFighter::ReadBoostInput()
 
 void AStarFighter::SwitchTarget()
 {
-	auto target = TargetingComp->GetTargetFromIndex(0);
-	//TODO figure out why it is null when playing as client
-	if (target) 
-	{
-		UE_LOG(LogTemp, Warning, TEXT("switched target to %s"), *target->GetName());
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("switch target was null"));
-	}
+	auto target = TargetingComp->GetTargetFromIndex(currentTargetIndex);
 	OnChangeTarget.Broadcast(target);
+	auto nextIndex = currentTargetIndex + 1;
+	currentTargetIndex = nextIndex == TargetingComp->GetTargetCount() ? 0 : nextIndex;
 }
 
 void AStarFighter::ClearUsedMoves(FFlightMove previousMove)

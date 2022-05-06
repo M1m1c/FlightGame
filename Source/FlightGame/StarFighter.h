@@ -202,7 +202,7 @@ protected:
 
 	float armExtensionAngle = 0.5f;
 
-
+	int currentTargetIndex = 0;
 
 public:	
 	// Called every frame
