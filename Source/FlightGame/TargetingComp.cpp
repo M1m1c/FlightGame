@@ -16,7 +16,6 @@ UTargetingComp::UTargetingComp()
 AActor* UTargetingComp::GetTargetFromIndex(int32 index)
 {
 	AActor* retval = nullptr;
-	UE_LOG(LogTemp, Warning, TEXT("@GetTargetFromIndex target count: %d"), availableTargets.Num());
 	if (availableTargets.IsValidIndex(index)) { retval = availableTargets[index]; }
 	return retval;
 }

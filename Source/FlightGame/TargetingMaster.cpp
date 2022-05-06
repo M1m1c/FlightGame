@@ -21,6 +21,7 @@ ATargetingMaster::ATargetingMaster()
 void ATargetingMaster::Multicast_AddToTargetsArray_Implementation(AActor* targetToAdd)
 {
 	if (!this) { return; }
+	if (!targetToAdd) { return; }
 	if (!totalTargetsInLevel.Find(targetToAdd)) { return; }
 	totalTargetsInLevel.Add(targetToAdd);
 	OnUpdateTargets.Broadcast(GetTargetsArray());
