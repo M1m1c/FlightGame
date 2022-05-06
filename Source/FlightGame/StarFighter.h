@@ -24,8 +24,6 @@ public:
 
 	UPROPERTY()
 	float boostTimer = 0.f;
-	UPROPERTY()
-	float currentBoostAdditive = 0.f;
 
 	UPROPERTY()
 	bool bUpdateRollVel = false;
@@ -203,6 +201,8 @@ protected:
 	float maxOffset = 100.f;
 
 	float armExtensionAngle = 0.5f;
+
+
 
 public:	
 	// Called every frame

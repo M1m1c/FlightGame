@@ -95,7 +95,6 @@ FFlightMove AStarFighter::CreateNewMove(float DeltaTime)
 	move.bUpdatePitchVel = bUpdatePitchVel;
 	move.bUpdateYawVel = bUpdateYawVel;
 	move.boostTimer = boostTimer;
-	move.currentBoostAdditive = currentBoostAdditive;
 	move.TimeStamp = GetWorld()->GetTimeSeconds();//ARaceGameState::Get(this)->GetServerWorldTimeSeconds();
 	return move;
 }
@@ -117,7 +116,6 @@ void AStarFighter::UpdateShipMovement(const FFlightMove& move)
 		FMath::IsNearlyZero(move.throttle) == false);
 
 	boostTimer = move.boostTimer;
-	//currentBoostAdditive = move.currentBoostAdditive;
 	auto bIsBoosting = boostTimer < maxBoostTime;
 	if (bIsBoosting) 
 	{ 
